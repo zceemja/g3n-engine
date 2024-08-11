@@ -9,14 +9,14 @@
 package math32
 
 import (
-	"math"
+	m32 "github.com/chewxy/math32"
 )
 
-const Pi = math.Pi
-const degreeToRadiansFactor = math.Pi / 180
-const radianToDegreesFactor = 180.0 / math.Pi
+const Pi = m32.Pi
+const degreeToRadiansFactor = m32.Pi / 180
+const radianToDegreesFactor = 180.0 / m32.Pi
 
-var Infinity = float32(math.Inf(1))
+var Infinity = m32.Inf(1)
 
 // DegToRad converts a number from degrees to radians
 func DegToRad(degrees float32) float32 {
@@ -55,39 +55,39 @@ func ClampInt(x, a, b int) int {
 }
 
 func Abs(v float32) float32 {
-	return float32(math.Abs(float64(v)))
+	return m32.Abs(v)
 }
 
 func Acos(v float32) float32 {
-	return float32(math.Acos(float64(v)))
+	return m32.Acos(v)
 }
 
 func Asin(v float32) float32 {
-	return float32(math.Asin(float64(v)))
+	return m32.Asin(v)
 }
 
 func Atan(v float32) float32 {
-	return float32(math.Atan(float64(v)))
+	return m32.Atan(v)
 }
 
 func Atan2(y, x float32) float32 {
-	return float32(math.Atan2(float64(y), float64(x)))
+	return m32.Atan2(y, x)
 }
 
 func Ceil(v float32) float32 {
-	return float32(math.Ceil(float64(v)))
+	return m32.Ceil(v)
 }
 
 func Cos(v float32) float32 {
-	return float32(math.Cos(float64(v)))
+	return m32.Cos(v)
 }
 
 func Floor(v float32) float32 {
-	return float32(math.Floor(float64(v)))
+	return m32.Floor(v)
 }
 
 func Inf(sign int) float32 {
-	return float32(math.Inf(sign))
+	return m32.Inf(sign)
 }
 
 func Round(v float32) float32 {
@@ -95,37 +95,59 @@ func Round(v float32) float32 {
 }
 
 func IsNaN(v float32) bool {
-	return math.IsNaN(float64(v))
+	return m32.IsNaN(v)
 }
 
 func Sin(v float32) float32 {
-	return float32(math.Sin(float64(v)))
+	return m32.Sin(v)
 }
 
 func Sqrt(v float32) float32 {
-	return float32(math.Sqrt(float64(v)))
+	return m32.Sqrt(v)
+}
+
+func Log(v float32) float32 {
+	return m32.Log(v)
+}
+
+func Exp(v float32) float32 {
+	return m32.Exp(v)
 }
 
 func Max(a, b float32) float32 {
-	return float32(math.Max(float64(a), float64(b)))
+	return m32.Max(a, b)
 }
 
 func Min(a, b float32) float32 {
-	return float32(math.Min(float64(a), float64(b)))
+	return m32.Min(a, b)
+}
+
+func MaxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func MinInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func Mod(a, b float32) float32 {
-	return float32(math.Mod(float64(a), float64(b)))
+	return m32.Mod(a, b)
 }
 
 func NaN() float32 {
-	return float32(math.NaN())
+	return m32.NaN()
 }
 
 func Pow(a, b float32) float32 {
-	return float32(math.Pow(float64(a), float64(b)))
+	return m32.Pow(a, b)
 }
 
 func Tan(v float32) float32 {
-	return float32(math.Tan(float64(v)))
+	return m32.Tan(v)
 }
