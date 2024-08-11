@@ -33,6 +33,7 @@ type GLS struct {
 	frontFace           uint32      // cached last set glFrontFace value
 	depthFunc           uint32      // cached last set depth function
 	depthMask           int         // cached last set depth mask
+	stencilMask         uint32      // cached last set stencil mask
 	capabilities        map[int]int // cached capabilities (Enable/Disable)
 	blendEquation       uint32      // cached last set blend equation value
 	blendSrc            uint32      // cached last set blend src value
@@ -401,7 +402,45 @@ func (gs *GLS) DeleteVertexArrays(vaos ...uint32) {
 	}
 }
 
-// TODO ReadPixels
+// ReadPixels returns the current rendered image.
+// x, y: specifies the window coordinates of the first pixel that is read from the frame buffer.
+// width, height: specifies the dimensions of the pixel rectangle.
+// format: specifies the format of the pixel data.
+// format_type: specifies the data type of the pixel data.
+// more information: https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/readPixels
+func (gs *GLS) ReadPixels(x, y, width, height, format, formatType int) []byte {
+
+	size := (width - x) * (height - y) * 4
+	pixels := make([]byte, size)
+	jsPixels := js.Global().Get("Uint8Array").New(size)
+	gs.gl.Call("readPixels", x, y, width, height, format, formatType, jsPixels)
+	gs.checkError("ReadPixels")
+	js.CopyBytesToJS(jsPixels, pixels)
+	return pixels
+}
+
+func (gs *GLS) StencilOp(fail, zfail, zpass uint32) {
+
+	gs.gl.Call("stencilOp", int(fail), int(zfail), int(zpass))
+	gs.checkError("StencilOp")
+}
+
+func (gs *GLS) StencilFunc(mode uint32, ref int32, mask uint32) {
+
+	gs.gl.Call("stencilFunc", int(mode), int(ref), int(mask))
+	gs.checkError("StencilFunc")
+}
+
+// StencilMask enables or disables writing into the stencil buffer.
+func (gs *GLS) StencilMask(mask uint32) {
+
+	if gs.stencilMask == mask {
+		return
+	}
+	gs.gl.Call("stencilMask", int(mask))
+	gs.checkError("StencilMask")
+	gs.stencilMask = mask
+}
 
 // DepthFunc specifies the function used to compare each incoming pixel
 // depth value with the depth value present in the depth buffer.
@@ -507,6 +546,82 @@ func (gs *GLS) GenBuffer() uint32 {
 	gs.bufferMapIndex++
 	gs.stats.Buffers++
 	return idx
+}
+
+// GenFramebuffer creates a new framebuffer.
+// Framebuffers store (usually two) render buffers.
+func (gs *GLS) GenFramebuffer() uint32 {
+
+	gs.framebufferMap[gs.framebufferMapIndex] = gs.gl.Call("createFramebuffer")
+	gs.checkError("CreateFramebuffer")
+	idx := gs.framebufferMapIndex
+	gs.framebufferMapIndex++
+	gs.stats.Fbos++
+	return idx
+}
+
+// GenRenderbuffer creates a new render buffer.
+func (gs *GLS) GenRenderbuffer() uint32 {
+
+	gs.renderbufferMap[gs.renderbufferMapIndex] = gs.gl.Call("createRenderbuffer")
+	gs.checkError("CreateRenderbuffer")
+	idx := gs.renderbufferMapIndex
+	gs.renderbufferMapIndex++
+	gs.stats.Rbos++
+	return idx
+}
+
+// BindFramebuffer sets the current framebuffer.
+func (gs *GLS) BindFramebuffer(fb uint32) {
+
+	gs.gl.Call("bindFramebuffer", FRAMEBUFFER, gs.framebufferMap[fb])
+	gs.checkError("BindFramebuffer")
+}
+
+// BindRenderbuffer sets the current render buffer.
+func (gs *GLS) BindRenderbuffer(rb uint32) {
+
+	gs.gl.Call("bindRenderbuffer", RENDERBUFFER, gs.renderbufferMap[rb])
+	gs.checkError("BindRenderbuffer")
+}
+
+// RenderbufferStorage allocates space for the bound render buffer.
+// Format is the internal storage format, e.g. RGBA32F
+func (gs *GLS) RenderbufferStorage(format uint, width int, height int) {
+
+	gs.gl.Call("renderbufferStorage", int(format), width, height)
+	gs.checkError("RenderbufferStorage")
+}
+
+// FramebufferRenderbuffer attaches a renderbuffer object to the bound framebuffer object.
+// Attachment is one of COLOR_ATTACHMENT0, DEPTH_ATTACHMENT, or STENCIL_ATTACHMENT.
+func (gs *GLS) FramebufferRenderbuffer(attachment uint, rb uint32) {
+
+	gs.gl.Call("framebufferRenderbuffer", DRAW_FRAMEBUFFER, int(attachment), RENDERBUFFER, gs.renderbufferMap[rb])
+	gs.checkError("FramebufferRenderbuffer")
+}
+
+// FramebufferTexture2D attaches a level of a texture object as a logical buffer to the currently bound framebuffer object
+func (gs *GLS) FramebufferTexture2D(attachment uint, textarget uint, tex uint32) {
+
+	gs.gl.Call("framebufferTexture2D", FRAMEBUFFER, int(attachment), int(textarget), int(tex), 0)
+	gs.checkError("FramebufferTexture2D")
+}
+
+// CheckFramebufferStatus get the framebuffer status
+func (gs *GLS) CheckFramebufferStatus() uint32 {
+
+	res := gs.gl.Call("checkFramebufferStatus", FRAMEBUFFER)
+	gs.checkError("CheckFramebufferStatus")
+	return uint32(res.Int())
+}
+
+// ReadBuffer sets the buffer for reading using ReadPixels.
+// Attachment is one of COLOR_ATTACHMENT0, DEPTH_ATTACHMENT, or STENCIL_ATTACHMENT.
+func (gs *GLS) ReadBuffer(attachment uint) {
+
+	gs.gl.Call("readBuffer", int(attachment))
+	gs.checkError("ReadBuffer")
 }
 
 // GenerateMipmap generates mipmaps for the specified texture target.
@@ -736,7 +851,7 @@ func (gs *GLS) Uniform4f(location int32, v0, v1, v2, v3 float32) {
 	gs.stats.Unisets++
 }
 
-//// UniformMatrix3fv sets the value of one or many 3x3 float matrices for the current program object.
+// UniformMatrix3fv sets the value of one or many 3x3 float matrices for the current program object.
 func (gs *GLS) UniformMatrix3fv(location int32, count int32, transpose bool, pm *float32) {
 
 	data := (*[1 << 30]float32)(unsafe.Pointer(pm))[:9*count]
