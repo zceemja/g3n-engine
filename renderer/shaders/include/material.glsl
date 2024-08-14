@@ -28,7 +28,7 @@ uniform vec3 Material[6];
     vec4 Blend(vec4 texMixed, vec4 texColor) {
         texMixed.rgb *= texMixed.a;
         texColor.rgb *= texColor.a;
-        texMixed = texColor + texMixed * (1 - texColor.a);
+        texMixed = texColor + texMixed * (1.0 - texColor.a);
         if (texMixed.a > 0.0) {
             texMixed.rgb /= texMixed.a;
         }
