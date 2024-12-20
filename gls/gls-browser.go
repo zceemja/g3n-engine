@@ -780,6 +780,16 @@ func (gs *GLS) TexImage2D(target uint32, level int32, iformat int32, width int32
 	free()
 }
 
+// TexSubImage2D specifies a sub-rectangle of the current texture.
+func (gs *GLS) TexSubImage2D(target uint32, level int32, xoffset, yoffset, width, height int32, format uint32, itype uint32, data interface{}) {
+
+	dataTA, free := wasm.SliceToTypedArray(data)
+	// target, level, xoffset, yoffset, width, height, format, type, offset
+	gs.gl.Call("texSubImage2D", int(target), level, xoffset, yoffset, width, height, int(format), int(itype), dataTA)
+	gs.checkError("texSubImage2D")
+	free()
+}
+
 // CompressedTexImage2D specifies a two-dimensional compressed texture image.
 func (gs *GLS) CompressedTexImage2D(target uint32, level uint32, iformat uint32, width int32, height int32, size int32, data interface{}) {
 

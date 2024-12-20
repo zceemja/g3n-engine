@@ -691,6 +691,20 @@ func (gs *GLS) TexImage2D(target uint32, level int32, iformat int32, width int32
 		ptr(data))
 }
 
+// TexSubImage2D specifies a sub-rectangle of the current texture.
+func (gs *GLS) TexSubImage2D(target uint32, level int32, xoffset, yoffset, width, height int32, format uint32, itype uint32, data interface{}) {
+
+	C.glTexSubImage2D(C.GLenum(target),
+		C.GLint(level),
+		C.GLint(xoffset),
+		C.GLint(yoffset),
+		C.GLsizei(width),
+		C.GLsizei(height),
+		C.GLenum(format),
+		C.GLenum(itype),
+		ptr(data))
+}
+
 // CompressedTexImage2D specifies a two-dimensional compressed texture image.
 func (gs *GLS) CompressedTexImage2D(target uint32, level uint32, iformat uint32, width int32, height int32, size int32, data interface{}) {
 
@@ -846,9 +860,9 @@ func (gs *GLS) UseProgram(prog *Program) {
 //
 // For example:
 //
-// 	var data []uint8
-// 	...
-// 	gl.TexImage2D(gl.TEXTURE_2D, ..., gl.UNSIGNED_BYTE, gl.Ptr(&data[0]))
+//	var data []uint8
+//	...
+//	gl.TexImage2D(gl.TEXTURE_2D, ..., gl.UNSIGNED_BYTE, gl.Ptr(&data[0]))
 func ptr(data interface{}) unsafe.Pointer {
 	if data == nil {
 		return unsafe.Pointer(nil)
